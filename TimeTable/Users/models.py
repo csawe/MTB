@@ -33,7 +33,7 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     Department = models.ForeignKey(Department, on_delete=models.SET_DEFAULT, default=None, null=True)
     Year = models.ForeignKey(Year, on_delete=models.CASCADE, default=None, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     group = models.CharField(max_length=9, choices=GROUP, default="student")
     start_date = models.DateTimeField(default=timezone.now)
 
