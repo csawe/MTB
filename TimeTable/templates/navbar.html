@@ -1,0 +1,8 @@
+<div>
+    {% if request.user.is_authenticated %}
+        <button><a href="{% url 'Users:Signout-View' %}">Signout</a></button>
+        {% if request.user.group == "lecturer" %}
+            <a href="{% url 'Unit:SemesterUnit-View' %}">Semester Units</a>
+        {% endif %}
+    {% endif %}
+</div>

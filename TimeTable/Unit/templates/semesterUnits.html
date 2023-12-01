@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Semester Units{% endblock title %}
+
+{% block body %}
+
+This is the semester units page
+<a href="{% url 'Unit:AddSemesterUnit-View' %}">Add</a>
+{% for unit in semester_units %}
+    <p>{{unit}}</p>
+{% endfor %}
+
+{% endblock body %}

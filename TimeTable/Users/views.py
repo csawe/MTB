@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect, render
-from django.urls import is_valid_path
 
 from .forms import *
 from .models import *
@@ -40,6 +41,7 @@ def signup(request):
     }
     return render(request, 'signup.html', context)
     
-
+@login_required(login_url='Users:Signin-View')
 def signout(request):
-    pass
+    logout(request)
+    return redirect('Schedule:Home-View')
