@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from .models import SemesterUnit
 from Users.models import NewUser
+from .models import SemesterUnit, Unit
+from .forms import SemesterUnitForm
 
 # Create your views here.
 @login_required(login_url='Users:Signin-View')
@@ -11,4 +12,6 @@ def view_semester_unit(request):
 
 @login_required(login_url='Users:Signin-View')
 def add_semester_unit(request):
-    return render(request, 'addSemesterUnit.html', {})
+    form = SemesterUnitForm()
+    units = Unit.objects.all()
+    return render(request, 'addSemesterUnit.html', {'form': form, 'units':units,})
