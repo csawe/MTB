@@ -59,44 +59,129 @@
     </style>
     <script>
         var addedToCanvas = new Set();
-        
+        var draggedUnitId;
         function allowDrop(ev) {
             ev.preventDefault();
         }
         function drag(ev) {
             ev.dataTransfer.setData("text", ev.target.id);
+            draggedUnitId = event.target.id;
+            event.dataTransfer.setData("text", draggedUnitId);
+        }
+        function closePopup() {
+            var popup = document.querySelector('.popup-wrapper');
+            popup.style.display = 'none';
         }
         function drop(ev) {
             ev.preventDefault();
             var data = ev.dataTransfer.getData("text");
             var draggedElement = document.getElementById(data);
-
-            // Check if the drop target is the same as the drag source (palette)
-            // If it is, do nothing to prevent appending to the same div
             if (ev.target.id !== draggedElement.parentNode.id && !addedToCanvas.has(data)) {
                 var clonedElement = draggedElement.cloneNode(true);
-                // Remove the draggable attribute from the cloned element
                 clonedElement.removeAttribute("draggable");
-                // Append the cloned element to the drop target
+                clonedElement.setAttribute('data-unit-id', data);
                 ev.target.appendChild(clonedElement);
-                // Add the element's ID to the set to prevent duplicates in the canvas
                 addedToCanvas.add(data);
-                // Add a delete button to the cloned element
                 var deleteButton = document.createElement("span");
                 deleteButton.className = "delete-button";
                 deleteButton.innerHTML = "🗑️";;
                 deleteButton.onclick = function () {
-                    // Remove the element from the canvas and update the set
-                    ev.target.removeChild(clonedElement);
+                    ev.target.removeChild(clonedElement);     // Remove the element from the canvas and update the set
                     addedToCanvas.delete(data);
                 };
                 clonedElement.appendChild(deleteButton);
+                closePopup();
                 var popup = document.querySelector('.popup-wrapper')
-                var popupclose = document.querySelector('.popup-close').addEventListener('click', function(){
-                    popup.style.display = 'none';
-                })
                 popup.style.display = 'block';
-                console.log(popup);
+                var popupform = popup.querySelector('.popup-content');
+                var selectform = popupform.querySelector('#id_Lecturer');
+                var saveBtn = popupform.querySelector('#popup-save-btn');
+                if (saveBtn !== null){
+                    popupform.removeChild(saveBtn);
+                }
+                var departmentId = draggedElement.dataset.departmentId;
+                var url = "{% url 'Unit:GetLecturers-View' department_id=9999999999 %}";
+                url = url.replace("9999999999", departmentId);
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        const lecturers = JSON.parse(data);
+                        // Clear previous options
+                        selectform.innerHTML = "";
+                        // Add new options
+                        lecturers.forEach(lecturer => {
+                            var option = document.createElement("option");
+                            option.value = lecturer.pk;  // Assuming the id is in the 'fields' object
+                            option.text = lecturer.fields.username;  // Change this based on your field names
+                            selectform.appendChild(option);
+                        });
+                    });
+            }
+        }
+        function linkUnitLecBtn() {
+            var selectedLecturerId = document.getElementById('id_Lecturer').value;
+            var clonedElement = document.querySelector('.draggable-unit[data-unit-id]:last-child');
+            if (draggedUnitId && selectedLecturerId && clonedElement) {
+                console.log(`Linking Unit ${draggedUnitId} with Lecturer ${selectedLecturerId}`);
+                clonedElement.setAttribute('data-lec-id', selectedLecturerId);
+                closePopup();
+            } else {
+                console.error("Dragged unit ID or selected lecturer ID is missing.");
+            }
+        }
+        function collectSemesterUnitData() {
+            var semesterUnits = [];
+            var canvasElements = document.querySelectorAll('#canvas .draggable-unit[data-unit-id][data-lec-id]');
+            canvasElements.forEach(element => {
+                var unitId = element.getAttribute('data-unit-id');
+                var lecturerId = element.getAttribute('data-lec-id');
+                semesterUnits.push({ unitId: unitId, lecturerId: lecturerId });
+            });
+            console.log("SemesterUnits is: ",semesterUnits)
+            return semesterUnits;
+        }
+        function getCSRFToken() {
+            var csrfToken = null;
+            document.cookie.split(';').forEach(cookie => {
+                var parts = cookie.trim().split('=');
+                if (parts[0] === 'csrftoken') {
+                    csrfToken = decodeURIComponent(parts[1]);
+                }
+            });
+            return csrfToken;
+        }
+        function saveSemesterUnits(){
+            var semesterUnits = collectSemesterUnitData();
+            var csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]');
+            if (semesterUnits.length > 0){
+                // Make an AJAX request to the backend
+                var url = "{% url 'Unit:SaveSemesterUnit-View' %}";
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({ semesterUnits: semesterUnits }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response from the backend
+                    if (data.success) {
+                        alert('SemesterUnits saved successfully!');
+                        // Redirect or perform other actions on success
+                        window.location.href = "{% url 'Unit:SemesterUnit-View' %}";
+                    } else {
+                        alert('Error saving SemesterUnits: ' + data.error);
+                        // Handle error response
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving SemesterUnits:', error);
+                    // Handle fetch error
+                });
+            }else{
+                alert('No SemesterUnits to save.');
             }
         }
     </script>
@@ -105,7 +190,7 @@
     <!-- Palette -->
     <div id="palette" ondrop="drop(event)" ondragover="allowDrop(event)">
         {% for unit in units %}
-            <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id="unit_{{ unit.id }}">{{ unit.name }}</div>
+            <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id="{{ unit.id }}" data-department-id="{{ unit.Department.id }}">{{ unit.name }}</div>
         {% endfor %}
     </div>
     <!-- Canvas -->
@@ -114,23 +199,14 @@
         <div class="popup">
             <div class="popup-close">X</div>
             <div class="popup-content">
-                <h1>This is the popup</h1>
-                <p> We are going to add more info here soon</p>
-                <a href="#"> View Website</a>
+                <h1>Select Lecturer</h1>
+                <label for="id_Lecturer">Lecturer:</label>
+                <select name="Lecturer" id="id_Lecturer" required></select>
+                <button id="linkLecturerBtn" onclick="linkUnitLecBtn()">Link lec</button>
             </div>
         </div>
     </div>
-
-
-
-Form
-<!-- <div>
-    <form method='POST'>
-        {% csrf_token %}
-        <h3>Unit: {{form.Unit}}</h3>
-        <h3>Lecturer: {{form.Lecturer}} </h3>
-        <button type='submit'>Register Semester Unit</button>
-    </form>
-</div> -->
+    </div>
+    <button onclick="saveSemesterUnits()">Submit</button>
 
 {% endblock body %}
