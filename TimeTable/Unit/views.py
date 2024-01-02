@@ -17,7 +17,9 @@ def view_semester_unit(request):
 def add_semester_unit(request):
     form = SemesterUnitForm()
     units = Unit.objects.all()
-    return render(request, 'addSemesterUnit.html', {'form': form, 'units':units,})
+    user = request.user
+    years = user.Department.years
+    return render(request, 'addSemesterUnit.html', {'form': form, 'units':units, 'years':range(1,years+1),})
 
 @login_required(login_url='Users:Signin-View')
 def get_lecturers(request, department_id):
