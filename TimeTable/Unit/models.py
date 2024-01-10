@@ -14,8 +14,9 @@ class Unit(models.Model):
         return self.name
     
 class SemesterUnit(models.Model):
-    Unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    Lecturer = models.ForeignKey(NewUser, on_delete=models.PROTECT, limit_choices_to={'group':'lecturer'})
+    Unit = models.ForeignKey(Unit, on_delete=models.DO_NOTHING)
+    Lecturer = models.ForeignKey(NewUser, on_delete=models.DO_NOTHING, limit_choices_to={'group':'lecturer'})
+    Year = models.ForeignKey(Year, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.Unit.code + " " + self.Unit.name
@@ -24,7 +25,7 @@ class Lecture(models.Model):
     day = models.CharField(max_length=10)
     start = models.TimeField()
     end = models.TimeField()
-    SemesterUnit = models.ForeignKey(SemesterUnit, on_delete=models.PROTECT)
+    SemesterUnit = models.ForeignKey(SemesterUnit, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.SemesterUnit.Unit.name

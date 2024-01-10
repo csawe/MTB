@@ -3,6 +3,7 @@ from django.core import serializers
 from django.http import JsonResponse
 from django.shortcuts import render
 import json
+from School.models import Year
 from Users.models import NewUser
 from .models import SemesterUnit, Unit
 from .forms import SemesterUnitForm
@@ -40,10 +41,17 @@ def save_semester_units(request):
             print("Raw Data: ", raw_data)
             semester_units = raw_data.get('semesterUnits', [])
             for semester_unit in semester_units:
-                print(semester_unit)
-            
-            # Return a success response
+                if len(semester_unit['units']) > 0:
+                    print("Year: ", semester_unit['Year'])
+                    for unit in semester_unit['units']:
+                        unit_temp = Unit.objects.get(id=unit['unitId'])
+                        lecturer_temp = NewUser.objects.get(id=unit['lecturerId'])
+                        year_temp = Year.objects.get(Department=request.user.Department, year=semester_unit['Year'])
+                        print("Unit ", unit_temp, "Lec: ", lecturer_temp, "year: ", year_temp)
+                        semester_unit_obj = SemesterUnit(Unit=unit_temp, Lecturer=lecturer_temp, Year=year_temp)
+                        semester_unit_obj.save()
+                else:
+                    return JsonResponse({'success': False, 'error': "Some years are blank"})
             return JsonResponse({'success': True})
         except Exception as e:
-            # Return an error response
             return JsonResponse({'success': False, 'error': str(e)})
