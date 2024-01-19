@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from School.models import School
+from School.models import School, Department
 
 # Create your models here.
 class Building(models.Model):
@@ -18,3 +18,10 @@ class Room(models.Model):
 
     def __str__(self):
         return self.name
+    
+class RoomDepartment(models.Model):
+    Room = models.ForeignKey(Room, on_delete=models.DO_NOTHING)
+    Department = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return str(self.Room) + " -- " + str(self.Department)

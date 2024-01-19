@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Rooms{% endblock title %}
+
+{% block body %}
+    <script>
+        var deparmtment;
+        function openAssignModal(button) {
+            var departmentId = button.getAttribute('data-department-id');
+            var modal = document.getElementById('assignModal');
+            deparmtment = departmentId
+            var popup = document.querySelector('#assignModal')
+            var selectform = popup.querySelector('#room_selector');
+            var url = "{% url 'Room:GetRooms' %}";
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const rooms = data
+                    console.log("Data: ", data);
+                    // Clear previous options
+                    selectform.innerHTML = "";
+                    // Add new options
+                    rooms.forEach(room => {
+                        var option = document.createElement("option");
+                        option.value = room.id;  // Assuming the id is in the 'fields' object
+                        option.text = room.name ;  // Change this based on your field names
+                        selectform.appendChild(option);
+                    });
+                });
+            modal.style.display = 'block';
+        }
+        function assignRoom(){
+            var roomId = document.getElementById('room_selector').value;
+            console.log("Department: ", deparmtment);
+            console.log("Room: ", roomId);
+            // Use fetch API to submit the form data
+            var url = "{% url 'Room:AssignRoom-View' %}";
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: 'department_id=' + encodeURIComponent(deparmtment) + '&room_id=' + encodeURIComponent(roomId),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                closeAssignModal();
+                window.location.reload();
+                return response.json();
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        }
+        function closeAssignModal() {
+            var modal = document.getElementById('assignModal');
+            modal.style.display = 'none';
+        }
+        window.onclick = function(event) {
+            var modal = document.getElementById('assignModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+
+    <style>
+        #assignModal{
+            display:none;
+        }
+
+    </style>
+
+
+    Departments with unassigned rooms
+    <div id="departments-container">
+        {% for department in departments %}
+            <div>
+                {{ department }} 
+                <button class="assign-btn" data-department-id="{{ department.id }}" onclick="openAssignModal(this)">Assign Room</button>
+            </div>
+        {% endfor %}
+    </div>
+    <br>
+    Department room Designations
+    <div id="department-with-room-container">
+        {% for department_with_room in departments_with_room %}
+            <div>
+                {{ department_with_room }} 
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modal -->
+    <div id="assignModal">
+            <span class="close" onclick="closeAssignModal()">&times;</span>
+            <!-- Your form goes here -->
+            <label for="room_selector">Lecturer:</label>
+            <select name="Room" id="room_selector" required></select>
+            <button onclick="assignRoom()">Link room to department</button>
+    </div>
+    
+{% endblock body %}
