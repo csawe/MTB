@@ -5,6 +5,7 @@
         {% if request.user.group == "lecturer" %}
             <a href="{% url 'Unit:SemesterUnit-View' %}">Units</a>
             <a href="{% url 'Room:AssignRoom-View' %}">Room</a>
+            <a href="{% url 'Schedule:Schedule-View' %}">Schedule</a>
         {% endif %}
     {% endif %}
 </div>

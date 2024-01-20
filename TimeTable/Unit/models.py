@@ -25,6 +25,7 @@ class Lecture(models.Model):
     day = models.CharField(max_length=10)
     start = models.TimeField()
     end = models.TimeField()
+    Department = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
     SemesterUnit = models.ForeignKey(SemesterUnit, on_delete=models.CASCADE)
 
     def __str__(self):

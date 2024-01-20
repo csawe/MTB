@@ -5,7 +5,8 @@ from Unit.models import Lecture
 # Create your models here.
 class Schedule(models.Model):
     Department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    Lectures = models.ManyToManyField(Lecture)
+    # Lectures_ = ArrayField(Lecture)
+    # Lectures = models.ManyToManyField(Lecture)
     accepted = models.BooleanField(default=False)
 
     def __str__(self):

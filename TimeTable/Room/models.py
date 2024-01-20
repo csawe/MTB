@@ -5,7 +5,7 @@ from School.models import School, Department
 # Create your models here.
 class Building(models.Model):
     name = models.CharField(max_length=50)
-    Schools = models.ManyToManyField(School)
+    Schools = models.ManyToManyField(School, blank=True)
 
     def __str__(self):
         return self.name
