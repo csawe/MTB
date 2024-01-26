@@ -7,5 +7,10 @@
             <a href="{% url 'Room:AssignRoom-View' %}">Room</a>
             <a href="{% url 'Schedule:Schedule-View' %}">Schedule</a>
         {% endif %}
+        {% if user.is_superuser %}
+           <a href="../../../admin">Tables</a>
+        {% endif %}
+
+
     {% endif %}
 </div>

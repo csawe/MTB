@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Page{% endblock title %}
+
+{% block body %}
+    <style>
+        .palette {
+            float: left;
+            width: 15%;
+            height: 75%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            overflow: auto;
+        }
+        .canvas {
+            display: grid;
+            margin: 10px;
+            max-height: 75%;
+            overflow-y: auto;
+            height: 75%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 0px;
+        }
+        .canvas-title {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #000; /* Border styling */
+            box-sizing: border-box;
+        }
+        .canvas-cell {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #000; /* Border styling */
+            box-sizing: border-box;
+        }
+        .draggable-unit {
+            width: 200px;
+            height: 20px;
+            margin: 5px;
+            padding: 5px;
+            border: 1px solid black;
+            cursor: move;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+    <script>
+        var draggedSemesterUnitId;
+        var addedToCanvas = new Set()
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+            draggedSemesterUnitId = event.target.id;
+            event.dataTransfer.setData("text", draggedSemesterUnitId);
+        }
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            if (!addedToCanvas.has(data) && ev.target.getAttribute('free')=='true') {
+                var clonedElement = draggedElement.cloneNode(true);
+                clonedElement.setAttribute('data-semester-unit-id', data);
+                ev.target.appendChild(clonedElement);
+                addedToCanvas.add(data);
+                console.log("Dragged: ", draggedElement);
+                var target = ev.target;
+                target.setAttribute("free", "false")
+                var deleteButton = document.createElement("span");
+                deleteButton.className = "delete-button";
+                deleteButton.innerHTML = "🗑️";;
+                deleteButton.onclick = function () {
+                    target.removeChild(clonedElement);     // Remove the element from the canvas and update the set
+                    addedToCanvas.delete(data);
+                    target.setAttribute("free", "true")
+                };
+                clonedElement.appendChild(deleteButton);
+            }
+        }
+    </script>
+    <!-- Palette -->
+    <div class="palette">
+        Pallette
+        {% for semester_unit in semester_units %}
+            <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id={{semester_unit.id}}>{{ semester_unit }}</div>
+        {% endfor %}
+    </div>
+    <!-- Canvas -->
+    <div class="canvas">
+        <div class="canvas-title">Day</div>
+        <div class="canvas-title">7Am</div>
+        <div class="canvas-title">8AM</div>
+        <div class="canvas-title">9AM</div>
+        <div class="canvas-title">10AM</div>
+        <div class="canvas-title">11AM</div>
+        <div class="canvas-title">12Noon</div>
+        <div class="canvas-title">1PM</div>
+        <div class="canvas-title">2PM</div>
+        <div class="canvas-title">3PM</div>
+        <div class="canvas-title">4PM</div>
+        <div class="canvas-title">5PM</div>
+        {% comment %} Day break {% endcomment %}
+        <div class="canvas-title">Monday</div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        {% comment %} Day break {% endcomment %}
+        <div class="canvas-title">Tuesday</div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        {% comment %} Day break {% endcomment %}
+        <div class="canvas-title">Wednesday</div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        {% comment %} Day break {% endcomment %}
+        <div class="canvas-title">Thursday</div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        {% comment %} Day break {% endcomment %}
+        <div class="canvas-title">Friday</div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+    </div>
+
+{% endblock body %}

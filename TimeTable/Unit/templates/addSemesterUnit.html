@@ -228,7 +228,7 @@
     <h2>Drag and Drop</h2>
     <p>Drag units from the palette to the canvas.</p>
     <!-- Palette -->
-    <div id="palette" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <div id="palette" ondrop="drop(event)">
         {% for unit in units %}
             <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id="{{ unit.id }}" data-department-id="{{ unit.Department.id }}">{{ unit.name }}</div>
         {% endfor %}
