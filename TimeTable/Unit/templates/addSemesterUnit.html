@@ -122,6 +122,7 @@
                 if (saveBtn !== null){
                     popupform.removeChild(saveBtn);
                 }
+                console.log("Data: draggedElement.dataset")
                 var departmentId = draggedElement.dataset.departmentId;
                 var url = "{% url 'Unit:GetLecturers-View' department_id=9999999999 %}";
                 url = url.replace("9999999999", departmentId);

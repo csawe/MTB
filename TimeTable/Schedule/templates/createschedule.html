@@ -49,10 +49,59 @@
             display: flex;
             justify-content: space-between;
         }
+        .resize-handle {
+            width: 10px;
+            height: 100%;
+            background-color: #ccc;
+            position: absolute;
+            right: 0;
+            top: 0;
+            cursor: ew-resize;
+            z-index: 2;
+        }
+        .popup-wrapper {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.5);
+            width: 100%;
+            height: 100%;
+        }
+        .popup {
+            background: white;
+            padding: 20px;
+            max-width: 400px;
+            margin: 100px auto;
+            border-radius: 8px;
+            position: relative;
+        }
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
     </style>
     <script>
         var draggedSemesterUnitId;
         var addedToCanvas = new Set()
+        var originalWidth;
+        var resizeHandleStartX;
+        function resizeStart(ev) {
+            if (ev.target.getAttribute('pressable')=='true'){
+                document.addEventListener('mousemove', resizeDrag(clonedElement));
+                ev.target.setAttribute('pressable', 'false');
+            }
+        }
+        function resizeDrag(ev) {
+            console.log("Target: ", clonedElement);
+            var clonedElement = ev.target.parentElement.cloneNode(true);
+            var nextCell = ev.target;
+            nextCell.appendChild(clonedElement);
+            document.removeEventListener('mousemove', resizeDrag);
+        }
         function drag(ev) {
             ev.dataTransfer.setData("text", ev.target.id);
             draggedSemesterUnitId = event.target.id;
@@ -61,6 +110,10 @@
         function allowDrop(ev) {
             ev.preventDefault();
         }
+        function closePopup() {
+            var popup = document.querySelector('.popup-wrapper');
+            popup.style.display = 'none';
+        }
         function drop(ev) {
             ev.preventDefault();
             var data = ev.dataTransfer.getData("text");
@@ -68,9 +121,9 @@
             if (!addedToCanvas.has(data) && ev.target.getAttribute('free')=='true') {
                 var clonedElement = draggedElement.cloneNode(true);
                 clonedElement.setAttribute('data-semester-unit-id', data);
+                clonedElement.removeAttribute("draggable");
                 ev.target.appendChild(clonedElement);
                 addedToCanvas.add(data);
-                console.log("Dragged: ", draggedElement);
                 var target = ev.target;
                 target.setAttribute("free", "false")
                 var deleteButton = document.createElement("span");
@@ -82,14 +135,81 @@
                     target.setAttribute("free", "true")
                 };
                 clonedElement.appendChild(deleteButton);
+                var resizeHandle = document.createElement('div');
+                resizeHandle.classList.add('resize-handle');
+                resizeHandle.setAttribute('pressable', 'true');
+                function resizeStart(ev) {
+                    if (ev.target.getAttribute('pressable')=='true'){
+                        document.addEventListener('mousemove', resizeDrag);
+                        ev.target.setAttribute('pressable', 'false');
+                    }
+                }
+                function resizeDrag(ev) {
+                    console.log("Target: ", draggedElement);
+                    var clonedElement = draggedElement.cloneNode(true);
+                    clonedElement.setAttribute('data-semester-unit-id', data);
+                    clonedElement.removeAttribute("draggable");
+                    var deleteButton = document.createElement("span");
+                    deleteButton.className = "delete-button";
+                    deleteButton.innerHTML = "🗑️";;
+                    deleteButton.onclick = function () {
+                        ev.target.removeChild(clonedElement);     // Remove the element from the canvas and update the set
+                        addedToCanvas.delete(data);
+                        ev.target.setAttribute("free", "true")
+                    };
+                    clonedElement.appendChild(deleteButton);
+                    var nextCell = ev.target;
+                    nextCell.appendChild(clonedElement);
+                    document.removeEventListener('mousemove', resizeDrag);
+                }
+                resizeHandle.addEventListener('mousedown', resizeStart);
+                clonedElement.appendChild(resizeHandle);
+                closePopup();
+                var popup = document.querySelector('.popup-wrapper')
+                popup.style.display = 'block';
+                var popupform = popup.querySelector('.popup-content');
+                var selectform = popupform.querySelector('#id_room');
+                var saveBtn = popupform.querySelector('#popup-save-btn');
+                if (saveBtn !== null){
+                    popupform.removeChild(saveBtn);
+                }
+                var semesterUnit_id = draggedElement.dataset.semesterunitId;
+                console.log("Data: ", semesterUnit_id);
+                var url = "{% url 'Schedule:GetRooms-View' semesterUnit_id=9999999999 %}";
+                url = url.replace("9999999999", semesterUnit_id);
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Data: ", data);
+                        const rooms = data;
+                        selectform.innerHTML = "";
+                        rooms.forEach(room => {
+                            var option = document.createElement("option");
+                            option.value = room.id;  // Assuming the id is in the 'fields' object
+                            option.text = room.name;  // Change this based on your field names
+                            selectform.appendChild(option);
+                        });
+                    });
             }
         }
+        function linkSemesterUnitRoomBtn() {
+            var selectedRoomId = document.getElementById('id_room').value;
+            var clonedElement = document.querySelector(`.draggable-unit[data-semester-unit-id="${draggedSemesterUnitId}"]`);
+            if (draggedSemesterUnitId && selectedRoomId && clonedElement) {
+                console.log(`Linking Unit ${draggedSemesterUnitId} with Room ${selectedRoomId}`);
+                clonedElement.setAttribute('data-room-id', selectedRoomId);
+                closePopup();
+            } else {
+                console.error("Dragged semester unit ID or selected room ID is missing.");
+            }
+        }
+        
     </script>
     <!-- Palette -->
     <div class="palette">
         Pallette
         {% for semester_unit in semester_units %}
-            <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id={{semester_unit.id}}>{{ semester_unit }}</div>
+            <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id="{{semester_unit.id}}" data-semesterUnit-id="{{semester_unit.id}}">{{ semester_unit }}</div>
         {% endfor %}
     </div>
     <!-- Canvas -->
@@ -108,8 +228,8 @@
         <div class="canvas-title">5PM</div>
         {% comment %} Day break {% endcomment %}
         <div class="canvas-title">Monday</div>
-        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
-        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true" iter="one"></div>
+        <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true" iter="two"></div>
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
@@ -171,6 +291,17 @@
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
         <div class="canvas-cell" ondrop="drop(event)" ondragover="allowDrop(event)" free="true"></div>
+    </div>
+    <div class="popup-wrapper">
+        <div class="popup">
+            <div class="popup-close"><button onclick="closePopup()">X</button></div>
+            <div class="popup-content">
+                <h1>Select Room</h1>
+                <label>Room:</label>
+                <select name="room" id="id_room" required></select>
+                <button id="linkRoomBtn" onclick="linkSemesterUnitRoomBtn()">Link Room</button>
+            </div>
+        </div>
     </div>
 
 {% endblock body %}

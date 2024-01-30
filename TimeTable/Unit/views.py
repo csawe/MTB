@@ -24,7 +24,6 @@ def add_semester_unit(request):
 
 @login_required(login_url='Users:Signin-View')
 def get_lecturers(request, department_id):
-    print("Department ID is: ", department_id)
     if department_id:
         FIELDS = ['id', 'username', 'first_name', 'last_name']
         lecturers = serializers.serialize("json", NewUser.objects.filter(Department__id=department_id, group='lecturer'), fields=FIELDS)

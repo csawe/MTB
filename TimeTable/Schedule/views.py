@@ -1,6 +1,9 @@
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.http import JsonResponse
 from django.shortcuts import render
 from School.models import Year
+from Room.models import RoomDepartment
 from Unit.models import SemesterUnit, Lecture
 from .models import Schedule
 
@@ -28,3 +31,15 @@ def create_schedule(request):
             'lectures':lecutures,
         }
         return render(request, 'schedule.html', context)
+    
+def get_rooms(request, semesterUnit_id):
+    FIELDS = ['id', 'Room_name']
+    if semesterUnit_id:
+        semesterUnit = SemesterUnit.objects.get(id=semesterUnit_id)
+        department = semesterUnit.Unit.Department
+        rooms_ = RoomDepartment.objects.filter(Department=department)
+        rooms = [{'id':room.Room.id, 'name':room.Room.name} for room in rooms_]
+        return JsonResponse(rooms, safe=False)
+    else:
+        print("There") 
+        return JsonResponse({'error': 'Department ID not provided'}, status=400)
