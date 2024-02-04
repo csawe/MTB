@@ -43,3 +43,9 @@ def get_rooms(request, semesterUnit_id):
     else:
         print("There") 
         return JsonResponse({'error': 'Department ID not provided'}, status=400)
+
+def save_lectures(request):
+    if request.method == 'POST':
+        return JsonResponse({'success': True})
+    else :
+        return JsonResponse({'success': False, 'error': 'Method not allowed'})
