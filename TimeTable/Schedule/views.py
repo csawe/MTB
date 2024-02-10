@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.http import JsonResponse
 from django.shortcuts import render
+import datetime
 import json
 from School.models import Year
 from Room.models import RoomDepartment
@@ -45,40 +46,49 @@ def get_rooms(request, semesterUnit_id):
         return JsonResponse({'error': 'Department ID not provided'}, status=400)
 
 def save_lectures(request):
-    submitted_lectures = []
-    raw_data = json.loads(request.body.decode('utf-8'))
-    lectures = raw_data.get('lectures', [])
-    print("Lectures:")
-    for lecture in lectures:
-        semester_unit = lecture['semester_unit']
-        # for submitted in submitted_lectures:
-        if not any(lecture['time'] == submitted['time'] for submitted in submitted_lectures):
-            if (lecture['time'] is not None):
-                print("Lecture: ", lecture)
-                lecture_ = {
-                    "semester_unit": semester_unit,
-                    "room": lecture['semester_unit'],
-                    "day": lecture['day'],
-                    "time": [lecture['time']]
-                }
-                submitted_lectures.append(lecture_)
-        else:
-            # Handle the extra classes...
-            pass
-    for lecture_to_create in submitted_lectures:
-        start = lecture_to_create['time'][0]
-        end = lecture_to_create['time'][1] if (len(lecture_to_create['time'])>0) else (lecture_to_create['time']+1)
-        # Convert to time
-        semester_unit_ = SemesterUnit.objects.get(lecture_to_create['semester_unit'])
-        lecture = Lecture(
-                SemesterUnit = semester_unit_,
-                day=lecture_to_create['day'], 
-                Department=request.user.Department,
-                start = start,
-                end = end,
-            )
-        lecture.save()
     if request.method == 'POST':
+        submitted_lectures = []
+        raw_data = json.loads(request.body.decode('utf-8'))
+        lectures = raw_data.get('lectures', [])
+        print("Lectures:")
+        for lecture in lectures:
+            semester_unit = lecture['semester_unit']
+            # for submitted in submitted_lectures:
+            if not any(lecture['time'] == submitted['time'] for submitted in submitted_lectures):
+                if (lecture['time'] is not None):
+                    print("Lecture: ", lecture)
+                    lecture_ = {
+                        "semester_unit": semester_unit,
+                        "room": lecture['semester_unit'],
+                        "day": lecture['day'],
+                        "time": [lecture['time']]
+                    }
+                    submitted_lectures.append(lecture_)
+            else:
+                # Handle the extra classes...
+                pass
+        for lecture_to_create in submitted_lectures:
+            start_time = int(lecture_to_create['time'][0])*100
+            if (len(lecture_to_create['time']) > 1):
+                end_time = int(lecture_to_create['time'][1])*100
+            else:
+                end_time = (int(lecture_to_create['time'][0])+1)*100
+            
+            start_hour, start_minute = divmod(start_time, 100)
+            end_hour, end_minute = divmod(end_time, 100)
+            print("Heere")
+            start = datetime.time(hour = start_hour, minute=start_minute)
+            end = datetime.time(hour=end_hour, minute=end_minute)
+            # Convert to time
+            semester_unit_ = SemesterUnit.objects.get(id=lecture_to_create['semester_unit'])
+            lecture = Lecture(
+                    SemesterUnit = semester_unit_,
+                    day=lecture_to_create['day'], 
+                    Department=request.user.Department,
+                    start = start,
+                    end = end,
+                )
+            lecture.save()
         return JsonResponse({'success': True})
     else :
         return JsonResponse({'success': False, 'error': 'Method not allowed'})
