@@ -170,15 +170,7 @@
                     canvasData.units.push({ unitId: unitId, lecturerId: lecturerId });
                 });
                 semesterUnits.push(canvasData);
-            })
-            
-            //var canvasElements = document.querySelectorAll('#canvas .draggable-unit[data-unit-id][data-lec-id]');
-            //canvasElements.forEach(element => {
-            //    var unitId = element.getAttribute('data-unit-id');
-            //    var lecturerId = element.getAttribute('data-lec-id');
-            //    semesterUnits.push({ unitId: unitId, lecturerId: lecturerId });
-            //});
-            //console.log("SemesterUnits is: ",semesterUnits)
+            });
             return semesterUnits;
         }
         function getCSRFToken() {
