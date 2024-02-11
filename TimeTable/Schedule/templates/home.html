@@ -3,7 +3,38 @@
 {% block title %}Home Page{% endblock title %}
 
 {% block body %}
+    <script>
+        function submit(){
+            console.log("Here");
+        }
+    </script>
 
-Hello world
+    Hello world<br>
+    {% if schedule %}
+        {{schedule}}
+        {{ lectures }}
+    {% endif %}
 
+
+    <div>
+        Form for checking for free rooms
+        <form method="POST" id="free_rooms"> 
+            {% csrf_token %}
+            <label for="day">Enter time</label>
+            <select id="day" name="day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+            </select>
+            <label for="time">Enter time</label>
+            <input type="time" id="time" name="time"/>
+            <button onclick="submit()"> Get rooms</button>
+        </form>
+        <div>
+            Free rooms:
+
+        </div>
+    </div>
 {% endblock body %}

@@ -1,6 +1,5 @@
 from django.db import models
 from School.models import Department
-from Unit.models import Lecture
 
 # Create your models here.
 class Schedule(models.Model):

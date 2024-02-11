@@ -5,20 +5,52 @@ from django.shortcuts import render
 import datetime
 import json
 from School.models import Year
-from Room.models import RoomDepartment
+from Room.models import RoomDepartment, Room
 from Unit.models import SemesterUnit, Lecture
 from .models import Schedule
 
 # Create your views here.'
 @login_required(login_url='Users:Signin-View')
 def home(request):
-    context = {}
+    if request.method == "POST":
+        free_rooms = []
+        day = request.POST.get('day', None)
+        time_ = request.POST.get('time')
+        print("Day: ", day, " at time: ", time_)
+        rooms = Room.objects.all()
+        for room in rooms:
+            dep_room = RoomDepartment.objects.filter(Room=room).first()
+            if dep_room:
+                department = dep_room.Department
+                lectures = Lecture.objects.filter(day=day, Department=department)
+                if len(lectures) == 0:
+                    free_rooms.append(room)
+                # Constraint for time
+            else:
+                free_rooms.append(room)
+        context['free_rooms'] = free_rooms
+    schedule, _ = Schedule.objects.get_or_create(Department=request.user.Department)
+    lectures = Lecture.objects.filter(Schedule=schedule)
+    if schedule:
+        context = {
+            'schedule':schedule,
+            'lectures': lectures,
+        }
+    else:
+        context = {'schedule': 'No timetable'}
     return render(request, 'home.html', context)
 
 @login_required(login_url='Users:Signin-View')
 def create_schedule(request):
-    print(request.user.group)
     if request.user.group == 'lecturer':
+        """
+            Get external units first
+            1. Check if there are external units
+            2. If they exist, get their lectures
+            3. Push to table and make time slots
+        """
+
+
         department = request.user.Department
         years = Year.objects.filter(Department=department)
         semesterUnits = SemesterUnit.objects.filter(Year__in=years)
@@ -47,13 +79,13 @@ def get_rooms(request, semesterUnit_id):
 
 def save_lectures(request):
     if request.method == 'POST':
+        department = request.user.Department
+        schedule, schedule_tuple = Schedule.objects.get_or_create(Department=department)
         submitted_lectures = []
         raw_data = json.loads(request.body.decode('utf-8'))
         lectures = raw_data.get('lectures', [])
-        print("Lectures:")
         for lecture in lectures:
             semester_unit = lecture['semester_unit']
-            # for submitted in submitted_lectures:
             if not any(lecture['time'] == submitted['time'] for submitted in submitted_lectures):
                 if (lecture['time'] is not None):
                     print("Lecture: ", lecture)
@@ -73,15 +105,13 @@ def save_lectures(request):
                 end_time = int(lecture_to_create['time'][1])*100
             else:
                 end_time = (int(lecture_to_create['time'][0])+1)*100
-            
             start_hour, start_minute = divmod(start_time, 100)
             end_hour, end_minute = divmod(end_time, 100)
-            print("Heere")
             start = datetime.time(hour = start_hour, minute=start_minute)
             end = datetime.time(hour=end_hour, minute=end_minute)
-            # Convert to time
             semester_unit_ = SemesterUnit.objects.get(id=lecture_to_create['semester_unit'])
             lecture = Lecture(
+                    Schedule = schedule,
                     SemesterUnit = semester_unit_,
                     day=lecture_to_create['day'], 
                     Department=request.user.Department,

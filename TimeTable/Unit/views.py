@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
 import json
@@ -17,7 +18,9 @@ def view_semester_unit(request):
 @login_required(login_url='Users:Signin-View')
 def add_semester_unit(request):
     form = SemesterUnitForm()
-    units = Unit.objects.all()
+    units = Unit.objects.all().order_by('Department')
+    external_units = Unit.objects.filter(~Q(Department=request.user.Department))
+    print("External units: ", external_units)
     user = request.user
     years = user.Department.years
     return render(request, 'addSemesterUnit.html', {'form': form, 'units':units, 'years':range(1,years+1),})
