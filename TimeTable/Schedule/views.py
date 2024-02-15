@@ -12,6 +12,7 @@ from .models import Schedule
 # Create your views here.'
 @login_required(login_url='Users:Signin-View')
 def home(request):
+    context = {}
     if request.method == "POST":
         free_rooms = []
         day = request.POST.get('day', None)
@@ -29,15 +30,14 @@ def home(request):
             else:
                 free_rooms.append(room)
         context['free_rooms'] = free_rooms
-    schedule, _ = Schedule.objects.get_or_create(Department=request.user.Department)
-    lectures = Lecture.objects.filter(Schedule=schedule)
-    if schedule:
-        context = {
-            'schedule':schedule,
-            'lectures': lectures,
-        }
-    else:
-        context = {'schedule': 'No timetable'}
+    if (request.user.Department):
+        schedule, _ = Schedule.objects.get_or_create(Department=request.user.Department)
+        lectures = Lecture.objects.filter(Schedule=schedule)
+        if schedule:
+            context['schedule'] = schedule
+            context['lectures'] = lectures
+        else:
+            context['schedule'] = "No TimeTable"
     return render(request, 'home.html', context)
 
 @login_required(login_url='Users:Signin-View')
@@ -115,6 +115,7 @@ def save_lectures(request):
                     SemesterUnit = semester_unit_,
                     day=lecture_to_create['day'], 
                     Department=request.user.Department,
+                    Year = semester_unit_.Year,
                     start = start,
                     end = end,
                 )

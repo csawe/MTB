@@ -24,6 +24,18 @@ GROUP = (
     ('student','Student'),
     ('lecturer','Lecturer'),
 )
+DAYS = (
+    ('monday', 'Monday'),
+    ('tuesday', 'Tuesday'),
+    ('wednesday', 'Wednesday'),
+    ('thursday', 'Thursday'),
+    ('friday', 'Friday'),
+)
+TIMES = (
+    (8, 'Morning'),
+    (10, 'Mid-Morning'),
+    (14, 'Afternoon')
+)
 
 class NewUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
@@ -35,6 +47,8 @@ class NewUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     group = models.CharField(max_length=9, choices=GROUP, default="student")
+    day_pref = models.CharField(max_length=10, choices=DAYS, blank=True, null=True)
+    time_pref = models.IntegerField(choices=TIMES, null=True, blank=True)
     start_date = models.DateTimeField(default=timezone.now)
 
     objects = CustomAccountManager()

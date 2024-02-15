@@ -33,13 +33,13 @@
             box-sizing: border-box;
         }
         .canvas-cell {
-            width: 100%;
+            width: 1000%;
             height: 100%;
             border: 1px solid #000; /* Border styling */
             box-sizing: border-box;
         }
         .draggable-unit {
-            width: 300px;
+            width: 200px;
             height: 20px;
             margin: 5px;
             padding: 5px;
@@ -242,7 +242,7 @@
                     }
                 })
                 .catch (error => {
-                    console.error("Error saving schedule: ", error);
+                    alert('Error submitting schedule: ')
                 });
             } else {
                 alert('No lectures submitted.');

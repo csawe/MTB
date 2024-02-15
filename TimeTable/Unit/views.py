@@ -48,9 +48,10 @@ def save_semester_units(request):
                     for unit in semester_unit['units']:
                         unit_temp = Unit.objects.get(id=unit['unitId'])
                         lecturer_temp = NewUser.objects.get(id=unit['lecturerId'])
-                        year_temp = Year.objects.get(Department=request.user.Department, year=semester_unit['Year'])
+                        dep_temp = request.user.Department
+                        year_temp = Year.objects.get(Department=dep_temp, year=semester_unit['Year'])
                         print("Unit ", unit_temp, "Lec: ", lecturer_temp, "year: ", year_temp)
-                        semester_unit_obj = SemesterUnit(Unit=unit_temp, Lecturer=lecturer_temp, Year=year_temp)
+                        semester_unit_obj = SemesterUnit(Unit=unit_temp, Lecturer=lecturer_temp, Department=dep_temp ,Year=year_temp)
                         semester_unit_obj.save()
                 else:
                     return JsonResponse({'success': False, 'error': "Some years are blank"})

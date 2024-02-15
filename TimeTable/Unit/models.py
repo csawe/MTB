@@ -18,7 +18,7 @@ class SemesterUnit(models.Model):
     Unit = models.ForeignKey(Unit, on_delete=models.DO_NOTHING)
     Lecturer = models.ForeignKey(NewUser, on_delete=models.DO_NOTHING, limit_choices_to={'group':'lecturer'})
     Department = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
-    # Year = models.ForeignKey(Year, on_delete=models.DO_NOTHING)
+    Year = models.ForeignKey(Year, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.Unit.code + " " + self.Unit.name
