@@ -1,7 +1,7 @@
 <div>
     {% if request.user.is_authenticated %}
         <button><a href="{% url 'Users:Signout-View' %}">Signout</a></button>
-        <a href="">TimeTable</a>
+        <a href="{% url "Schedule:Home-View" %}">Home</a>
         {% if request.user.group == "lecturer" %}
             <a href="{% url 'Unit:SemesterUnit-View' %}">Units</a>
             <a href="{% url 'Room:AssignRoom-View' %}">Room</a>

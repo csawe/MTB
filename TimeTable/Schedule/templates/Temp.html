@@ -34,7 +34,7 @@
                 box-sizing: border-box;
             }
             .canvas-cell {
-                width: 100%;
+                width: 1000%;
                 height: 100%;
                 border: 1px solid #000; /* Border styling */
                 box-sizing: border-box;
@@ -89,19 +89,7 @@
                 margin-left: 45%;
             }
         </style>
-        {{ external_lectures|json_script:"external_lectures" }}
         <script>
-            window.onload = function render_lectures() {
-                console.log("Loading lectures...")
-                const myData = JSON.parse(document.getElementById('external_lectures').textContent);
-                console.log("Data: ", myData);
-                myData.forEach(lecture => {
-                    console.log("Day: ", lecture.fields.day)
-                    var day = lecture.fields.day;
-                    var start = lecture.fields.start;
-                    var end = lecture.fields.end;
-                });
-            }
             var draggedSemesterUnitId;
             var addedToCanvas = new Set()
             var originalWidth;

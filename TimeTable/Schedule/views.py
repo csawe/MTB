@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
+from django.core.serializers import serialize
+from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import datetime
 import json
 from School.models import Year
@@ -9,7 +10,7 @@ from Room.models import RoomDepartment, Room
 from Unit.models import SemesterUnit, Lecture
 from .models import Schedule
 
-# Create your views here.'
+# Create your views here.
 @login_required(login_url='Users:Signin-View')
 def home(request):
     context = {}
@@ -31,11 +32,14 @@ def home(request):
                 free_rooms.append(room)
         context['free_rooms'] = free_rooms
     if (request.user.Department):
-        schedule, _ = Schedule.objects.get_or_create(Department=request.user.Department)
-        lectures = Lecture.objects.filter(Schedule=schedule)
-        if schedule:
-            context['schedule'] = schedule
-            context['lectures'] = lectures
+        schedule = Schedule.objects.filter(Department=request.user.Department)
+        if len(schedule)>0:
+            lectures = Lecture.objects.filter(Schedule=schedule[0])
+            if schedule:
+                context['schedule'] = schedule
+                context['lectures'] = lectures
+            else:
+                context['schedule'] = "No TimeTable"
         else:
             context['schedule'] = "No TimeTable"
     return render(request, 'home.html', context)
@@ -43,28 +47,54 @@ def home(request):
 @login_required(login_url='Users:Signin-View')
 def create_schedule(request):
     if request.user.group == 'lecturer':
+        schedule = Schedule.objects.filter(Department=request.user.Department)
+        if (len(schedule)>0):
+            return redirect("Schedule:Home-View")
+        external_semester_units = SemesterUnit.objects.filter(Department=request.user.Department).filter(~Q(Unit__Department=request.user.Department))
+        check = "Empty"
+        for unit_ in external_semester_units:
+            department_schedule = Schedule.objects.filter(Department=unit_.Unit.Department)
+            if (len(department_schedule) > 0):
+                if (department_schedule[0].accepted == False):
+                    check = "Invalid"
+                else:
+                    check = "Valid"
+            else:
+                check = "None"
+        # pass to front end
+        if check == "Valid" or check == "Empty":
+            department = request.user.Department
+            years = Year.objects.filter(Department=department)
+            semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
+            external_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(~Q(Unit__Department=request.user.Department))
+            external_units = [unit.Unit for unit in external_semesterUnits]
+            external_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=external_units)
+            external_lectures_json = json.loads(serialize('json', external_lectures))
+            if len(semesterUnits)>0:
+                context = {
+                    'semester_units':semesterUnits,
+                    'external_lectures': external_lectures_json,
+                }
+            else:
+                context = {
+                    "message": "Awaiting creation of semester units"
+                }
+        elif check == "Invalid":
+            context = {
+                "message": "Awaiting approval of schedule for external units"
+            }
+        elif check == "None":
+            context = {
+                "message": "Awaiting creation and approval of schedule for external units"
+            }
         """
             Get external units first
-            1. Check if there are external units
-            2. If they exist, get their lectures
-            3. Push to table and make time slots
+            1. If they exist, get their lectures
+            2. Push to table and make time slots
         """
-
-
-        department = request.user.Department
-        years = Year.objects.filter(Department=department)
-        semesterUnits = SemesterUnit.objects.filter(Year__in=years)
-        context = {
-            'semester_units':semesterUnits,
-        }
         return render(request, 'createschedule.html', context)
     elif request.user.group == 'student':
-        schedule = Schedule.objects.get(Department=request.user.Departmemt)
-        lecutures = Lecture.objects.filter(Department=schedule.Department)
-        context = {
-            'lectures':lecutures,
-        }
-        return render(request, 'schedule.html', context)
+        return redirect("Schedule:Home-View")
     
 def get_rooms(request, semesterUnit_id):
     FIELDS = ['id', 'Room_name']
