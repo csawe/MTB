@@ -1,4 +1,5 @@
 from django.db import models
+from Room.models import Room
 from Schedule.models import Schedule
 from School.models import Department, Year
 from Users.models import NewUser
@@ -29,8 +30,9 @@ class Lecture(models.Model):
     start = models.TimeField()
     end = models.TimeField()
     Department = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
-    Year = models.ForeignKey(Year, on_delete=models.DO_NOTHING)
+    Room = models.ForeignKey(Room, on_delete=models.DO_NOTHING)
     SemesterUnit = models.ForeignKey(SemesterUnit, on_delete=models.CASCADE)
+    Year = models.ForeignKey(Year, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.SemesterUnit.Unit.name

@@ -96,14 +96,24 @@
                 const myData = JSON.parse(document.getElementById('external_lectures').textContent);
                 console.log("Data: ", myData);
                 myData.forEach(lecture => {
-                    console.log("Day: ", lecture.fields.day)
                     var day = lecture.fields.day;
-                    var start = lecture.fields.start;
+                    var start = Number((lecture.fields.start).slice(0,2));
                     var end = lecture.fields.end;
+                    var cell = document.querySelector('.canvas-cell[day="'+day+'"][time="'+start+'"]');
+                    if (cell){
+                        cell.setAttribute("free", "false");
+                        var url =  "{% url 'Schedule:GetLectureUnits' semesterUnit_id=999999999 %}"
+                        url = url.replace("999999999", lecture.fields.SemesterUnit)
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                cell.innerText = data.code + " " + data.name + " " + data.room;
+                            });
+                    }
                 });
             }
             var draggedSemesterUnitId;
-            var addedToCanvas = new Set()
+            var addedToCanvas = new Set();
             var originalWidth;
             var resizeHandleStartX;
             function drag(ev) {

@@ -8,4 +8,5 @@ urlpatterns = [
     path('schedule/', create_schedule, name='Schedule-View'),
     path('get_rooms/<int:semesterUnit_id>/', get_rooms, name='GetRooms-View'),
     path('save_lectures/', save_lectures, name='SaveLectures'),
+    path('get_lecture_units/<int:semesterUnit_id>/', get_lecture_units, name="GetLectureUnits"),
 ]

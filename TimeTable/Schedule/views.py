@@ -115,13 +115,14 @@ def save_lectures(request):
         raw_data = json.loads(request.body.decode('utf-8'))
         lectures = raw_data.get('lectures', [])
         for lecture in lectures:
+            print("Lecture: ", lecture)
             semester_unit = lecture['semester_unit']
             if not any(lecture['time'] == submitted['time'] for submitted in submitted_lectures):
                 if (lecture['time'] is not None):
                     print("Lecture: ", lecture)
                     lecture_ = {
                         "semester_unit": semester_unit,
-                        "room": lecture['semester_unit'],
+                        "room": lecture['room'],
                         "day": lecture['day'],
                         "time": [lecture['time']]
                     }
@@ -139,12 +140,14 @@ def save_lectures(request):
             end_hour, end_minute = divmod(end_time, 100)
             start = datetime.time(hour = start_hour, minute=start_minute)
             end = datetime.time(hour=end_hour, minute=end_minute)
+            room = Room.objects.get(id=lecture_to_create['room'])
             semester_unit_ = SemesterUnit.objects.get(id=lecture_to_create['semester_unit'])
             lecture = Lecture(
                     Schedule = schedule,
                     SemesterUnit = semester_unit_,
                     day=lecture_to_create['day'], 
                     Department=request.user.Department,
+                    Room=room,
                     Year = semester_unit_.Year,
                     start = start,
                     end = end,
@@ -153,3 +156,12 @@ def save_lectures(request):
         return JsonResponse({'success': True})
     else :
         return JsonResponse({'success': False, 'error': 'Method not allowed'})
+    
+def get_lecture_units(request, semesterUnit_id):
+    if semesterUnit_id:
+        semesterUnit = SemesterUnit.objects.get(id=semesterUnit_id)
+        lecture = Lecture.objects.get(SemesterUnit=semesterUnit)
+        unit = {"code": semesterUnit.Unit.code, "name": semesterUnit.Unit.name, "room": lecture.Room.name}
+        return JsonResponse(unit, safe=False)
+    else:
+        return JsonResponse({'error': "Semester Unit Id is not provided"}, status=400)
