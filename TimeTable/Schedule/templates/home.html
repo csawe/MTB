@@ -3,16 +3,171 @@
 {% block title %}Home Page{% endblock title %}
 
 {% block body %}
+    
+    <style>
+        .canvas {
+            display: grid;
+            margin: 10px;
+            max-height: 75%;
+            overflow-y: auto;
+            height: 75%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 0px;
+        }
+        .canvas-title {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #000; /* Border styling */
+            box-sizing: border-box;
+        }
+        .canvas-cell {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #000; /* Border styling */
+            box-sizing: border-box;
+        }
+    </style>
     <script>
         function submit(){
             console.log("Here");
         }
     </script>
 
-    Hello world<br>
-    {% if schedule %}
-        {{schedule}}
-        {{ lectures }}
+    Display user's schedule
+    <p>Welcome, {{ user }}. Thanks for logging in.</p>
+    {% if schedule  %}
+        {% if accepted %}
+            {{ internal_lectures|json_script:"internal_lectures" }}
+            {{ external_lectures|json_script:"external_lectures" }}
+            <script>
+                window.onload = function render_lectures() {
+                    console.log("Loading lectures...")
+                    const internal_lectures = JSON.parse(document.getElementById('internal_lectures').textContent);
+                    const external_lectures = JSON.parse(document.getElementById('external_lectures').textContent);
+                    console.log("Internal lectures: ", internal_lectures);
+                    console.log("External lectures: ", external_lectures)
+                    internal_lectures.forEach(lecture => {
+                        var day = lecture.fields.day;
+                        var start = Number((lecture.fields.start).slice(0,2));
+                        var end = lecture.fields.end;
+                        var cell = document.querySelector('.canvas-cell[day="'+day+'"][time="'+start+'"]');
+                        if (cell){
+                            cell.setAttribute("free", "false");
+                            var url =  "{% url 'Schedule:GetLectureUnits' semesterUnit_id=999999999 %}"
+                            url = url.replace("999999999", lecture.fields.SemesterUnit)
+                            fetch(url)
+                                .then(response => response.json())
+                                .then(data => {
+                                    cell.innerText = data.code + " " + data.name + " " + data.room;
+                                });
+                        }
+                    });
+                    external_lectures.forEach(lecture => {
+                        var day = lecture.fields.day;
+                        var start = Number((lecture.fields.start).slice(0,2));
+                        var end = lecture.fields.end;
+                        var cell = document.querySelector('.canvas-cell[day="'+day+'"][time="'+start+'"]');
+                        if (cell){
+                            cell.setAttribute("free", "false");
+                            var url =  "{% url 'Schedule:GetLectureUnits' semesterUnit_id=999999999 %}"
+                            url = url.replace("999999999", lecture.fields.SemesterUnit)
+                            fetch(url)
+                                .then(response => response.json())
+                                .then(data => {
+                                    cell.innerText = data.code + " " + data.name + " " + data.room;
+                                });
+                        }
+                    });
+                }
+            </script>
+            <div class="canvas">
+                <div class="canvas-title">Day</div>
+                <div class="canvas-title">7Am</div>
+                <div class="canvas-title">8AM</div>
+                <div class="canvas-title">9AM</div>
+                <div class="canvas-title">10AM</div>
+                <div class="canvas-title">11AM</div>
+                <div class="canvas-title">12Noon</div>
+                <div class="canvas-title">1PM</div>
+                <div class="canvas-title">2PM</div>
+                <div class="canvas-title">3PM</div>
+                <div class="canvas-title">4PM</div>
+                <div class="canvas-title">5PM</div>
+                {% comment %} Day break {% endcomment %}
+                <div class="canvas-title">Monday</div>
+                <div class="canvas-cell"  day="Monday" time="7"></div>
+                <div class="canvas-cell"  day="Monday" time="8"></div>
+                <div class="canvas-cell"  day="Monday" time="9"></div>
+                <div class="canvas-cell"  day="Monday" time="10"></div>
+                <div class="canvas-cell"  day="Monday" time="11"></div>
+                <div class="canvas-cell"  day="Monday" time="12"></div>
+                <div class="canvas-cell"  day="Monday" time="13"></div>
+                <div class="canvas-cell"  day="Monday" time="14"></div>
+                <div class="canvas-cell"  day="Monday" time="15"></div>
+                <div class="canvas-cell"  day="Monday" time="16"></div>
+                <div class="canvas-cell"  day="Monday" time="17"></div>
+                {% comment %} Day break {% endcomment %}
+                <div class="canvas-title">Tuesday</div>
+                <div class="canvas-cell"  day="Tuesday" time="7"></div>
+                <div class="canvas-cell"  day="Tuesday" time="8"></div>
+                <div class="canvas-cell"  day="Tuesday" time="9"></div>
+                <div class="canvas-cell"  day="Tuesday" time="10"></div>
+                <div class="canvas-cell"  day="Tuesday" time="11"></div>
+                <div class="canvas-cell"  day="Tuesday" time="12"></div>
+                <div class="canvas-cell"  day="Tuesday" time="13"></div>
+                <div class="canvas-cell"  day="Tuesday" time="14"></div>
+                <div class="canvas-cell"  day="Tuesday" time="15"></div>
+                <div class="canvas-cell"  day="Tuesday" time="16"></div>
+                <div class="canvas-cell"  day="Tuesday" time="17"></div>
+                {% comment %} Day break {% endcomment %}
+                <div class="canvas-title">Wednesday</div>
+                <div class="canvas-cell"  day="Wednesday" time="7"></div>
+                <div class="canvas-cell"  day="Wednesday" time="8"></div>
+                <div class="canvas-cell"  day="Wednesday" time="9"></div>
+                <div class="canvas-cell"  day="Wednesday" time="10"></div>
+                <div class="canvas-cell"  day="Wednesday" time="11"></div>
+                <div class="canvas-cell"  day="Wednesday" time="12"></div>
+                <div class="canvas-cell"  day="Wednesday" time="13"></div>
+                <div class="canvas-cell"  day="Wednesday" time="14"></div>
+                <div class="canvas-cell"  day="Wednesday" time="15"></div>
+                <div class="canvas-cell"  day="Wednesday" time="16"></div>
+                <div class="canvas-cell"  day="Wednesday" time="17"></div>
+                {% comment %} Day break {% endcomment %}
+                <div class="canvas-title">Thursday</div>
+                <div class="canvas-cell"  day="Thursday" time="7"></div>
+                <div class="canvas-cell"  day="Thursday" time="8"></div>
+                <div class="canvas-cell"  day="Thursday" time="9"></div>
+                <div class="canvas-cell"  day="Thursday" time="10"></div>
+                <div class="canvas-cell"  day="Thursday" time="11"></div>
+                <div class="canvas-cell"  day="Thursday" time="12"></div>
+                <div class="canvas-cell"  day="Thursday" time="13"></div>
+                <div class="canvas-cell"  day="Thursday" time="14"></div>
+                <div class="canvas-cell"  day="Thursday" time="15"></div>
+                <div class="canvas-cell"  day="Thursday" time="16"></div>
+                <div class="canvas-cell"  day="Thursday" time="17"></div>
+                {% comment %} Day break {% endcomment %}
+                <div class="canvas-title">Friday</div>
+                <div class="canvas-cell"  day="Friday" time="7"></div>
+                <div class="canvas-cell"  day="Friday" time="8"></div>
+                <div class="canvas-cell"  day="Friday" time="9"></div>
+                <div class="canvas-cell"  day="Friday" time="10"></div>
+                <div class="canvas-cell"  day="Friday" time="11"></div>
+                <div class="canvas-cell"  day="Friday" time="12"></div>
+                <div class="canvas-cell"  day="Friday" time="13"></div>
+                <div class="canvas-cell"  day="Friday" time="14"></div>
+                <div class="canvas-cell"  day="Friday" time="15"></div>
+                <div class="canvas-cell"  day="Friday" time="16"></div>
+                <div class="canvas-cell"  day="Friday" time="17"></div>
+            </div>
+        {% else %}
+            <p>Schedule not approved yet.</p>
+        {% endif %}
+    {% else %}
+        <p>No schedule found.</p>
     {% endif %}
 
 

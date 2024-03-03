@@ -33,13 +33,30 @@ def home(request):
         context['free_rooms'] = free_rooms
     if (request.user.Department):
         schedule = Schedule.objects.filter(Department=request.user.Department)
+        context["schedule"] = schedule
         if len(schedule)>0:
-            lectures = Lecture.objects.filter(Schedule=schedule[0])
-            if schedule:
-                context['schedule'] = schedule
-                context['lectures'] = lectures
+            schedule = schedule[0]
+            if (schedule.accepted == True):
+                context["accepted"] = True
+                # Get inrernal semester units and their lectures
+                department = request.user.Department
+                years = Year.objects.filter(Department=department)
+                semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
+                # Internal
+                internal_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
+                internal_units = [unit.Unit for unit in internal_semesterUnits]
+                internal_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=internal_units)
+                internal_lectures_json = json.loads(serialize('json', internal_lectures))
+                
+                # External
+                external_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(~Q(Unit__Department=request.user.Department))
+                external_units = [unit.Unit for unit in external_semesterUnits]
+                external_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=external_units)
+                external_lectures_json = json.loads(serialize('json', external_lectures))
+                context["internal_lectures"] = internal_lectures_json
+                context['external_lectures'] = external_lectures_json
             else:
-                context['schedule'] = "No TimeTable"
+                context["accepted"] = False
         else:
             context['schedule'] = "No TimeTable"
     return render(request, 'home.html', context)
@@ -87,11 +104,6 @@ def create_schedule(request):
             context = {
                 "message": "Awaiting creation and approval of schedule for external units"
             }
-        """
-            Get external units first
-            1. If they exist, get their lectures
-            2. Push to table and make time slots
-        """
         return render(request, 'createschedule.html', context)
     elif request.user.group == 'student':
         return redirect("Schedule:Home-View")
