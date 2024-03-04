@@ -194,7 +194,6 @@
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            console.log("Data: ", data);
                             const rooms = data;
                             selectform.innerHTML = "";
                             rooms.forEach(room => {
@@ -203,7 +202,28 @@
                                 option.text = room.name;  // Change this based on your field names
                                 selectform.appendChild(option);
                             });
-                        });
+                        }); 
+                    var url = "{% url 'Schedule:GetPreference' semesterUnit_id=9999999999 %}";
+                    url = url.replace("9999999999", semesterUnit_id);
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data=> {
+                            var day_pref = data.day
+                            var time_pref = data.time
+                            var day_slot = ev.target.getAttribute('day');
+                            var time_slot = ev.target.getAttribute('time');
+                            console.log("Slot on: ", day_slot,  " and at: ", time_slot);
+                            if (day_pref != day_slot){
+                                console.log("Invalid day")
+                                ev.target.style.background = 'red';
+                            } else {
+                                console.log("Time slot: ", time_slot, " vs Time preference ", time_pref)
+                                if (time_slot < time_pref || time_slot > (time_pref+1)){
+                                    console.log("Invalid time")
+                                    ev.target.style.background = 'red';
+                                }
+                            }
+                        })
                 }
             }
             function linkSemesterUnitRoomBtn() {

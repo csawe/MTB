@@ -41,7 +41,6 @@ def home(request):
                 # Get inrernal semester units and their lectures
                 department = request.user.Department
                 years = Year.objects.filter(Department=department)
-                semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
                 # Internal
                 internal_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
                 internal_units = [unit.Unit for unit in internal_semesterUnits]
@@ -57,8 +56,6 @@ def home(request):
                 context['external_lectures'] = external_lectures_json
             else:
                 context["accepted"] = False
-        else:
-            context['schedule'] = "No TimeTable"
     return render(request, 'home.html', context)
 
 @login_required(login_url='Users:Signin-View')
@@ -118,6 +115,15 @@ def get_rooms(request, semesterUnit_id):
         return JsonResponse(rooms, safe=False)
     else:
         return JsonResponse({'error': 'Department ID not provided'}, status=400)
+
+def get_lecturer_time_preferebce(request, semesterUnit_id):
+    if semesterUnit_id:
+        semesterUnit = SemesterUnit.objects.get(id=semesterUnit_id)
+        lecturer = semesterUnit.Lecturer
+        preference = {'time': lecturer.time_pref, 'day': lecturer.day_pref}
+        return JsonResponse(preference, safe=False)
+    else:
+        return JsonResponse({'error': "No lecturer passed"}, status=400)
 
 def save_lectures(request):
     if request.method == 'POST':
