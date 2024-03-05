@@ -44,8 +44,6 @@
                     console.log("Loading lectures...")
                     const internal_lectures = JSON.parse(document.getElementById('internal_lectures').textContent);
                     const external_lectures = JSON.parse(document.getElementById('external_lectures').textContent);
-                    console.log("Internal lectures: ", internal_lectures);
-                    console.log("External lectures: ", external_lectures)
                     internal_lectures.forEach(lecture => {
                         var day = lecture.fields.day;
                         var start = Number((lecture.fields.start).slice(0,2));
@@ -203,7 +201,6 @@
                 });
             }
             const form = document.getElementById("free_rooms");
-            console.log("Form: ", form);
             form.addEventListener('submit', function(e){
                 e.preventDefault();
                 var day = document.getElementById("day").value;
@@ -229,7 +226,6 @@
                         if (data.success) {
                             data = data.data;
                             console.log("Success");
-                            console.log("Data: ", data)
                             document.getElementById('free_rooms_list').innerHTML = '';
                             appendToList('free_rooms_list', data.free);
                             appendToList('free_rooms_list', data.unassigned);
