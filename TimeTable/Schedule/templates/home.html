@@ -31,11 +31,7 @@
             box-sizing: border-box;
         }
     </style>
-    <script>
-        function submit(){
-            console.log("Here");
-        }
-    </script>
+    
 
     Display user's schedule
     <p>Welcome, {{ user }}. Thanks for logging in.</p>
@@ -185,11 +181,71 @@
             </select>
             <label for="time">Enter time</label>
             <input type="time" id="time" name="time"/>
-            <button onclick="submit()"> Get rooms</button>
+            <input type="submit">
         </form>
+        <script>
+            function getCSRFToken() {
+                var csrfToken = null;
+                document.cookie.split(';').forEach(cookie => {
+                    var parts = cookie.trim().split('=');
+                    if (parts[0] === 'csrftoken') {
+                        csrfToken = decodeURIComponent(parts[1]);
+                    }
+                });
+                return csrfToken;
+            }
+            function appendToList(listId, items) {
+                const list = document.getElementById(listId);
+                items.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = item.fields.name;
+                    list.appendChild(listItem);
+                });
+            }
+            const form = document.getElementById("free_rooms");
+            console.log("Form: ", form);
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                var day = document.getElementById("day").value;
+                var time = document.getElementById("time").value;
+                if (time == '' || day == ''){
+                    alert("Choose time or day.")
+                } else { 
+                    console.log("Getting free rooms for: ", day, "at ", time);
+                    var url = "{% url 'Schedule:GetFreeRooms' %}";
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(),
+                        },
+                        body: JSON.stringify({
+                            'day': day,
+                            'time': time,
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            data = data.data;
+                            console.log("Success");
+                            console.log("Data: ", data)
+                            document.getElementById('free_rooms_list').innerHTML = '';
+                            appendToList('free_rooms_list', data.free);
+                            appendToList('free_rooms_list', data.unassigned);
+                        } else {
+                            alert('Error getting free rooms: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error getting free rooms:', error);
+                    });
+                }
+            });
+        </script>
         <div>
             Free rooms:
-
+            <ul id="free_rooms_list"></ul>
         </div>
     </div>
 {% endblock body %}

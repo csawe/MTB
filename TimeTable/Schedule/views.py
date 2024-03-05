@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.serializers import serialize
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 import datetime
@@ -183,3 +183,30 @@ def get_lecture_units(request, semesterUnit_id):
         return JsonResponse(unit, safe=False)
     else:
         return JsonResponse({'error': "Semester Unit Id is not provided"}, status=400)
+
+def get_free_rooms(request):
+    if request.method == "POST":
+        try:
+            raw_data = json.loads(request.body.decode('utf-8'))
+            time_data = datetime.datetime.strptime(raw_data['time'], '%H:%M').time()
+            free_rooms = []
+            departments_with_room = RoomDepartment.objects.all()
+            unassigned  = Room.objects.exclude(id__in=Subquery(departments_with_room.values('Room_id')))
+            rooms = Room.objects.all()
+            for room in rooms:
+                if (room not in unassigned):
+                    lectures = Lecture.objects.filter(Room=room, day=raw_data['day'])
+                    if (len(lectures)<1):
+                        free_rooms.append(room)
+                    else:
+                        for lecture in lectures:
+                            start = lecture.start.hour
+                            end = lecture.end.hour
+                            if time_data.hour < start or time_data.hour > end:
+                                free_rooms.append(room)
+                                break
+            free_rooms = json.loads(serialize('json', free_rooms))
+            unassigned = json.loads(serialize('json', unassigned))
+            return JsonResponse({'success': True, 'data': {'free': free_rooms, 'unassigned': unassigned}})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
