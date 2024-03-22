@@ -38,22 +38,28 @@ def home(request):
             schedule = schedule[0]
             if (schedule.accepted == True):
                 context["accepted"] = True
-                # Get inrernal semester units and their lectures
                 department = request.user.Department
-                years = Year.objects.filter(Department=department)
-                # Internal
-                internal_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
-                internal_units = [unit.Unit for unit in internal_semesterUnits]
-                internal_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=internal_units)
-                internal_lectures_json = json.loads(serialize('json', internal_lectures))
-                
-                # External
-                external_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(~Q(Unit__Department=request.user.Department))
-                external_units = [unit.Unit for unit in external_semesterUnits]
-                external_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=external_units)
-                external_lectures_json = json.loads(serialize('json', external_lectures))
-                context["internal_lectures"] = internal_lectures_json
-                context['external_lectures'] = external_lectures_json
+                if request.user.group == "student":
+                    years = Year.objects.filter(Department=department)
+                    # Internal
+                    internal_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(Unit__Department=request.user.Department)
+                    internal_units = [unit.Unit for unit in internal_semesterUnits]
+                    internal_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=internal_units)
+                    internal_lectures_json = json.loads(serialize('json', internal_lectures))
+                    
+                    # External
+                    external_semesterUnits = SemesterUnit.objects.filter(Year__in=years).filter(~Q(Unit__Department=request.user.Department))
+                    external_units = [unit.Unit for unit in external_semesterUnits]
+                    external_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=external_units)
+                    external_lectures_json = json.loads(serialize('json', external_lectures))
+                    context["internal_lectures"] = internal_lectures_json
+                    context['external_lectures'] = external_lectures_json
+                elif request.user.group == "lecturer":
+                    internal_semesterUnits = SemesterUnit.objects.filter(Lecturer=request.user)
+                    internal_units = [unit.Unit for unit in internal_semesterUnits]
+                    internal_lectures = Lecture.objects.filter(SemesterUnit__Unit__in=internal_units)
+                    internal_lectures_json = json.loads(serialize('json', internal_lectures))    
+                    context["internal_lectures"] = internal_lectures_json            
             else:
                 context["accepted"] = False
     return render(request, 'home.html', context)

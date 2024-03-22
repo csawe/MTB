@@ -128,6 +128,36 @@
                 var popup = document.querySelector('.popup-wrapper');
                 popup.style.display = 'none';
             }
+            function updateSlotAvailability(target, rooms, day, time){
+                console.log("Targetted is: ", target);
+                var cell_selected = document.querySelector(`.canvas-cell[day="${day}"].canvas-cell[time="${time}"]`);
+                var cell_selected_units = cell_selected.querySelectorAll('.draggable-unit[data-semester-unit-id]');
+                // Get list of rooms already selected
+                // Get list of all rooms
+                // Alter lists
+                rooms_selected = []
+                left_rooms = []
+                cell_selected_units.forEach(element => {
+                    if (element.getAttribute('data-room-id') != null){
+                        rooms_selected.push(Number(element.getAttribute('data-room-id')));
+                    }
+                });
+                console.log("Rooms selected: ", rooms_selected)
+                rooms.forEach(room =>{
+                    console.log("Room is ", room);
+                    if (rooms_selected.includes(room.id)){
+                        console.log("Popping room ", room.id);
+                    } else {
+                        left_rooms.push(room)
+                    }
+                });
+                console.log("Rooms left: ", left_rooms, " with length ", left_rooms.length);
+                if (left_rooms.length == 1){
+                    target.setAttribute("free", "false");
+                }
+                return left_rooms;
+            
+            }
             function drop(ev) {
                 ev.preventDefault();
                 var data = ev.dataTransfer.getData("text");
@@ -139,13 +169,13 @@
                     ev.target.appendChild(clonedElement);
                     addedToCanvas.add(data);
                     var target = ev.target;
-                    target.setAttribute("free", "false")
                     var deleteButton = document.createElement("span");
                     deleteButton.className = "delete-button";
                     deleteButton.innerHTML = "🗑️";;
                     deleteButton.onclick = function () {
-                        target.removeChild(clonedElement);     // Remove the element from the canvas and update the set
+                        target.removeChild(clonedElement); 
                         addedToCanvas.delete(data);
+                        ev.target.style.background = 'white';
                         target.setAttribute("free", "true")
                     };
                     clonedElement.appendChild(deleteButton);
@@ -167,13 +197,36 @@
                         deleteButton.className = "delete-button";
                         deleteButton.innerHTML = "🗑️";;
                         deleteButton.onclick = function () {
-                            ev.target.removeChild(clonedElement);     // Remove the element from the canvas and update the set
+                            ev.target.removeChild(clonedElement);
                             addedToCanvas.delete(data);
-                            ev.target.setAttribute("free", "true")
+                            ev.target.style.background = 'white';
+                            ev.target.setAttribute("free", "true");
                         };
                         clonedElement.appendChild(deleteButton);
                         var nextCell = ev.target;
                         nextCell.appendChild(clonedElement);
+                        nextCell.setAttribute("free", "false");
+                        var url = "{% url 'Schedule:GetPreference' semesterUnit_id=9999999999 %}";
+                        url = url.replace("9999999999", semesterUnit_id);
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data=> {
+                                var day_pref = data.day
+                                var time_pref = data.time
+                                var day_slot = ev.target.getAttribute('day');
+                                var time_slot = ev.target.getAttribute('time');
+                                console.log("Slot on: ", day_slot,  " and at: ", time_slot);
+                                if (day_pref != day_slot){
+                                    console.log("Invalid day");
+                                    nextCell.style.background = 'red';
+                                } else {
+                                    console.log("Time slot: ", time_slot, " vs Time preference ", time_pref);
+                                    if (time_slot < time_pref || time_slot > (time_pref+1)){
+                                        console.log("Invalid time")
+                                        nextCell.style.background = 'red';
+                                    }
+                                }
+                            });
                         document.removeEventListener('mousemove', resizeDrag);
                     }
                     resizeHandle.addEventListener('mousedown', resizeStart);
@@ -196,10 +249,13 @@
                         .then(data => {
                             const rooms = data;
                             selectform.innerHTML = "";
-                            rooms.forEach(room => {
+                            var day_slot = ev.target.getAttribute('day');
+                            var time_slot = ev.target.getAttribute('time');
+                            rooms_available = updateSlotAvailability(target, rooms, day_slot, time_slot, );
+                            rooms_available.forEach(room => {
                                 var option = document.createElement("option");
-                                option.value = room.id;  // Assuming the id is in the 'fields' object
-                                option.text = room.name;  // Change this based on your field names
+                                option.value = room.id;
+                                option.text = room.name;
                                 selectform.appendChild(option);
                             });
                         }); 
@@ -214,10 +270,10 @@
                             var time_slot = ev.target.getAttribute('time');
                             console.log("Slot on: ", day_slot,  " and at: ", time_slot);
                             if (day_pref != day_slot){
-                                console.log("Invalid day")
+                                console.log("Invalid day");
                                 ev.target.style.background = 'red';
                             } else {
-                                console.log("Time slot: ", time_slot, " vs Time preference ", time_pref)
+                                console.log("Time slot: ", time_slot, " vs Time preference ", time_pref);
                                 if (time_slot < time_pref || time_slot > (time_pref+1)){
                                     console.log("Invalid time")
                                     ev.target.style.background = 'red';
@@ -382,7 +438,7 @@
         </div>
         <div class="popup-wrapper">
             <div class="popup">
-                <div class="popup-close"><button onclick="closePopup()">X</button></div>
+                {% comment %} <div class="popup-close"><button onclick="closePopup()">X</button></div> {% endcomment %}
                 <div class="popup-content">
                     <h1>Select Room</h1>
                     <label>Room:</label>

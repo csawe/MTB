@@ -75,12 +75,27 @@
             cursor: pointer;
         }
         .submit-button-container {
-            {% comment %} text-align: center; {% endcomment %}
             left: 50%;
             margin-top: 20px; /* Adjust margin as needed */
         }
     </style>
     <script>
+        var search_text = ""
+        window.onload = function render_lectures() {
+            var elem = document.getElementById("search_text");
+            if (elem) {
+                elem.addEventListener('input', function(event){
+                    if (event.data){
+                        search_text += event.data;
+                    } else {
+                        search_text = search_text.slice(0, -1); 
+                    }
+                    console.log("Search for: ", search_text);
+                });
+            } else {
+                console.log("No element found.");
+            }
+        }
         var addedToCanvas = new Set();
         var draggedUnitId;
         function allowDrop(ev) {
@@ -217,11 +232,16 @@
                 alert('No SemesterUnits to save.');
             }
         }
+
     </script>
     <h2>Drag and Drop</h2>
     <p>Drag units from the palette to the canvas.</p>
     <!-- Palette -->
     <div id="palette" ondrop="drop(event)">
+        <div>
+            Search:
+            <input id="search_text" name="search_text" type="text">
+        </div>
         {% for unit in units %}
             <div class="draggable-unit" draggable="true" ondragstart="drag(event)" id="{{ unit.id }}" data-department-id="{{ unit.Department.id }}">{{ unit.name }}</div>
         {% endfor %}
