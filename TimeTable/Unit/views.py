@@ -58,3 +58,17 @@ def save_semester_units(request):
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
+        
+def get_semester_year_validity(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            unit = Unit.objects.get(id=data['unit'])
+            unit_year = int((unit.code).split()[1][0])
+            if unit_year == int(data['year']):
+                valid = True
+            else:
+                valid = False
+            return JsonResponse({'success': True, 'validity':valid})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})

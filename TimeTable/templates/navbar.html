@@ -1,16 +1,35 @@
-<div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
     {% if request.user.is_authenticated %}
-        <button><a href="{% url 'Users:Signout-View' %}">Signout</a></button>
-        <a href="{% url "Schedule:Home-View" %}">Home</a>
-        {% if request.user.group == "lecturer" %}
-            <a href="{% url 'Unit:SemesterUnit-View' %}">Units</a>
-            <a href="{% url 'Room:AssignRoom-View' %}">Room</a>
-            <a href="{% url 'Schedule:Schedule-View' %}">Scheduler</a>
-        {% endif %}
-        {% if user.is_superuser %}
-           <a href="../../../admin">Tables</a>
-        {% endif %}
-
-
+        <button class="btn btn-primary" onclick='window.location.href="{% url 'Users:Signout-View' %}"'>Signout</button>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url "Schedule:Home-View" %}">Home</span></a>
+            </li>
+            {% if request.user.group == "lecturer" %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'Unit:SemesterUnit-View' %}">Units</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'Unit:SemesterUnit-View' %}">Units</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'Room:AssignRoom-View' %}">Room</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'Schedule:Schedule-View' %}">Scheduler</a>
+                </li>
+            {% endif %}
+            {% if user.is_superuser %}
+                <li class="nav-item dropdown">
+                    <button class="nav-link dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                        Admin controls
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <li><a class="dropdown-item" href="../../../admin">Tables</a></li>
+                        <li><a class="dropdown-item" href="#">Register Users</a></li>
+                      </ul>
+                </li>
+            {% endif %}
+        </ul> 
     {% endif %}
-</div>
+</nav>

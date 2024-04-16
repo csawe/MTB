@@ -137,7 +137,41 @@
                 if (saveBtn !== null){
                     popupform.removeChild(saveBtn);
                 }
-                console.log("Data: draggedElement.dataset")
+                console.log("Data: ",draggedElement.id);
+                var year_parent = ev.target.getAttribute('data-year');
+                var unit_id = draggedElement.id
+                var url_get_validity = "{% url 'Unit:GetSemesterYear' %}";
+                fetch(url_get_validity, {
+                    method: 'POST',
+                    headers : {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({unit: unit_id, year: year_parent})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success){
+                            console.log("Data: ", data)
+                            if (data['validity']){
+                                console.log("Validity true: ", data['validity'])
+                            } else {
+                                const exclamationMark = document.createElement('span');
+                                exclamationMark.textContent = '!';
+                                exclamationMark.style.position = 'absolute';
+                                exclamationMark.style.top = '5px';
+                                exclamationMark.style.right = '5px';
+                                exclamationMark.style.fontSize = '16px';
+                                exclamationMark.style.fontWeight = 'bold';
+                                exclamationMark.style.color = 'red';
+                                clonedElement.appendChild(exclamationMark)
+                                console.log("Validity false: ", data['validity'])
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.log("Error: ", error)
+                    })
                 var departmentId = draggedElement.dataset.departmentId;
                 var url = "{% url 'Unit:GetLecturers-View' department_id=9999999999 %}";
                 url = url.replace("9999999999", departmentId);
@@ -203,7 +237,7 @@
             var csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]');
             if (semesterUnits.length > 0){
                 // Make an AJAX request to the backend
-                var url = "{% url 'Unit:SaveSemesterUnit-View' %}";
+                var url = "{% url 'Unit:SaveSemesterUnit' %}";
                 fetch(url, {
                     method: 'POST',
                     headers: {
