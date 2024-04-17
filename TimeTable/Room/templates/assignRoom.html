@@ -93,7 +93,28 @@
             </div>
         {% endfor %}
     </div>
-
+    <table>
+        <thead>
+          <tr>
+            <th>Room</th>
+            <th>Department Assigned To</th>
+            <th>Utilized</th>
+            <th>Capacity</th>
+            <th>Occupied</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for room_dept, utilization_info in department_utilization.items %}
+            <tr>
+              <td>{{ utilization_info.room }}</td>
+              <td>{{ room_dept }}</td>
+              <td>{{ utilization_info.utilization_status }} </td>
+              <td>{{ utilization_info.room_capacity }}
+                <td>{{ utilization_info.num_students }}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     <!-- Modal -->
     <div id="assignModal">
             <span class="close" onclick="closeAssignModal()">&times;</span>

@@ -195,6 +195,7 @@ def get_free_rooms(request):
         try:
             raw_data = json.loads(request.body.decode('utf-8'))
             time_data = datetime.datetime.strptime(raw_data['time'], '%H:%M').time()
+            # print("Time: ", time_data)
             free_rooms = []
             departments_with_room = RoomDepartment.objects.all()
             unassigned  = Room.objects.exclude(id__in=Subquery(departments_with_room.values('Room_id')))
@@ -202,15 +203,25 @@ def get_free_rooms(request):
             for room in rooms:
                 if (room not in unassigned):
                     lectures = Lecture.objects.filter(Room=room, day=raw_data['day'])
+                    # print("Lectures: ", lectures, " with room: ", room)
                     if (len(lectures)<1):
+                        # print("Appending for room: ", room)
                         free_rooms.append(room)
                     else:
+                        valid = True
                         for lecture in lectures:
+                            # print("====================")
+                            # print("Lecture: ", lecture)
                             start = lecture.start.hour
                             end = lecture.end.hour
-                            if time_data.hour < start or time_data.hour > end:
-                                free_rooms.append(room)
-                                break
+                            # print("Start time: ", start, " vs time checking: ", time_data.hour, "Time end: ", end, " vs time ending check: ", time_data.hour)
+                            if (time_data.hour >= start):
+                                if (time_data.hour < end):
+                                    # print("Found lecture in time slot")
+                                    valid = False
+                                    break
+                        if (valid == True):
+                            free_rooms.append(room)
             free_rooms = json.loads(serialize('json', free_rooms))
             unassigned = json.loads(serialize('json', unassigned))
             return JsonResponse({'success': True, 'data': {'free': free_rooms, 'unassigned': unassigned}})
