@@ -8,7 +8,6 @@ from Users.models import NewUser
 class Unit(models.Model):
     name = models.CharField(max_length=30)
     Department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    # Year = models.ForeignKey(Year, on_delete=models.CASCADE)
     code = models.CharField(max_length=10)
     labs_required = models.BooleanField()
     

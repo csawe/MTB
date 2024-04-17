@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk User Registration{% endblock title %}
+
+{% block body %}
+    Bulk register Users
+
+    <h1>Upload CSV File</h1>
+    {% if error_message %}
+        <div id="form-errors">{{ error_message }}</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Upload</button>
+    </form>
+
+    {% if data %}
+        <h2>Uploaded Data</h2>
+        {{ data|safe }}
+    {% endif %}
+
+    
+    <script>
+        // JavaScript code to hide the form errors after 5 seconds
+        var formErrors = document.getElementById('form-errors');
+        if (formErrors.innerText.trim() !== '') {
+        setTimeout(function() {
+            formErrors.innerHTML = '';
+        }, 5000); // 5000 milliseconds = 5 seconds
+        }
+    </script>
+    
+
+{% endblock body %}

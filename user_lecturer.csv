@@ -1,0 +1,4 @@
+username,password,email,first_name,last_name,day_pref,time_pref
+user1,Prototype_6,user1@gmail.com,user1,one,Monday,8
+user2,Prototype_6,user2@gmail.com,user2,two,Tuesday,8
+user3,Prototype_6,user3@gmail.com,user3,three,Monday,10
